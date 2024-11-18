@@ -1,0 +1,1187 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<!-- Saved on Thursday, December 29, 2016, 11:46 PM -->
+<!-- MuClient version 0.00 -->
+<muclient>
+<plugin
+   name="SKDHelper"
+   author="Zhalut"
+   id="2558d613791af67294299cb9"
+   language="Lua"
+   purpose="Triggers to gag things"
+   date_written="2023-03-17 07:00:00"
+   save_state="y"
+   requires="0.00"
+   version="2.03"
+   >
+
+</plugin>
+
+<aliases>
+  <alias regexp = "y" ignore_case="y" enabled="n" echo_alias="y" sequence="95" match="^skdre(port)? (?<type>\w+)$"
+    script="ALIAS_report"></alias> 
+  <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^cc$"
+    script="attack"></alias>
+  <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skdcan$"
+    script="cmdReportCannon"></alias>
+  <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^can$"
+    script="cmdLoadCannon"></alias>
+  <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skdmoon$"
+    script="cmdReportMoon"></alias>
+  <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skdaim$"
+    script="toggleCannonAim"></alias>
+  <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skdquiet$"
+    script="toggleReporting"></alias>
+ <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skd ?help$"
+    script="show_help"></alias>
+ <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^(w[1-3]) weap(?:on)? (?P<command>.+){1,100}$"
+    script="set_weapon"></alias>
+ <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^(w[1-3]) attack (?P<command>.+){1,100}$"
+    script="set_attack"></alias>
+ <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^(w[1-3])$"
+    script="equip_weapon"></alias>
+ <alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skdkeys?$"
+    script="show_pylon_attacks"></alias>
+<alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skdvars?$"
+    script="show_vars"></alias>
+<alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="95" match="^skd table?$"
+    script="show_table"></alias>
+<alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="100" match="^skd reload$"
+    script="plugin_reload"></alias>
+<alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="100" match="^skd ?(backstab|bs)$"
+    script="toggleBackstab"></alias>
+<alias regexp = "y" ignore_case="y" enabled="y" echo_alias="n" sequence="100" match="^skd reset plugin$"
+    script="plugin_reset"></alias>
+
+
+    plugin_reset
+</aliases>
+
+<triggers>
+  <!-- On firing a cannon yourself -->
+  <trigger 
+  match="^You smash the firing button and the cannon looses a blast of energy above\!$" 
+  enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="on_cannon_fire_self">
+  </trigger>
+  <!-- On encountering a moon, check if it's the right one -->
+  <trigger 
+  match="^\(.+\)+ Shimmering moonlight floats through the cracks in the ceiling to grace the floor\.$" 
+  name="skd_moon_description" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="mark_moon">
+  </trigger>
+  <!-- Mark moon as bad -->
+  <trigger 
+  match="^As you enter the room\, the moonlight caresses your cheek\.$"
+  name="skd_moon_bad" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="mark_moon">
+  </trigger>
+
+  <!-- On encountering Lizaard, send and start info timers -->
+  <trigger 
+  match="^Lizaan, the Drowned One says 'Ohhh... I don't feel so good... like I may burst.'$" 
+  enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="report_lizaard_times">
+  </trigger>
+  <!-- On epic start after specter, reset values and set start time -->
+  <trigger 
+    match="^Spectre of the Deep says 'Best to avoid his attention completely if you are able, lest you draw his ire.'$" 
+    name="triggerSKDEpicStartSpecter" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_epic_start_specter">
+  </trigger>
+  <!-- On finding cannon, set cannon room and report if no cannon room is set -->
+  <trigger 
+    match="^(?:\s+)?\(.+\)+ A reverse spirit discombobulator cannon sort of contraption device is mounted on a rusted tripod.$"
+    name="triggerSKDEpicCannonFound" enabled="n" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_epic_cannon_found">
+  </trigger>
+  <!-- After you get pylon dust, go to cannon if room is set -->
+  <trigger 
+    match="^You receive some crystal dust from a crystal pylon.$" 
+    name="triggerSKDEpicOnDust" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="cmdLoadCannon">
+  </trigger>
+  <!-- Epic Start Messages -->
+  <trigger 
+    match="^With some effort, you silently pry it open and step forth into the treasury.$" 
+    name="triggerSKDEpicStartYou" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_epic_start">
+  </trigger>  
+  <trigger 
+    match="^.* pries the door to the treasury open and steps into the great room.$" 
+    name="triggerSKDEpicStartOther" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_epic_start">
+  </trigger>  
+
+  <!-- Epic Reset Message -->
+  <trigger 
+    match="^The Grey Halls of the Sea King appear calm once again.$" 
+    name="triggerSKDEpicReset" enabled="n" group="triggerSKDSKGroup2" omit_from_output="n" regexp="y" sequence="99" script="skd_epic_reset">
+  </trigger>
+
+  <!-- Sea King Fight - Phase -->
+  <trigger 
+    match="^The Sea King leaps away, clinging to the ceiling overhead.$" 
+    name="triggerSKLeap" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="seaking_movement">
+  </trigger>
+  <trigger 
+    match="^His eyes begin to glow red, and you feel your soul start to pull away from your body.$" 
+    name="triggerSKHealCheck" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="seaking_movement">
+  </trigger>
+  <trigger 
+    match="^The Sea King drops back down to the floor and glances over the wreckage.$" 
+    name="triggerSKLand" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="seaking_movement">
+  </trigger>
+
+  <!-- Sea King Fight - Heal Check -->
+  <trigger 
+    match="^Your vision blurs as something rips at your soul!$" 
+    name="triggerSKDHealCheck" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_heal_check">
+  </trigger>
+  
+  <!-- Sea King Fight - Pylons -->
+
+  <trigger 
+    match="^You hear a low, ominous hum and see (?P<mob>a crystal pylon) flicker into existance before you.$"
+    name="pylon_spawn" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_pylon_colorstoo">
+  </trigger>
+
+  <trigger 
+    match="^(\(Wounded\) |)A (?<color>lilac|seafoam|cerulean) crystal pylon stands several spans above your head, glowing faintly.$" 
+    name="pylon" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_pylon_colors">
+  </trigger>
+  <trigger 
+    match="^\(.+\)+ ?(?P<Wounded>\(Wounded|wounded\) )?(?P<mob>A crystal pylon) is fighting \w+\.$" 
+    name="pylon_fighting" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_pylon_colorstoo">
+  </trigger>
+  <!-- Sea King Fight - Taunt -->
+  <trigger 
+    match="^As the Sea King approaches, moonlight grazes his shoulder.$" 
+    name="triggerSKTauntHit" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="seaking_taunt_hit">
+  </trigger>
+  <trigger 
+    match="^Suddenly, the Sea King is before you. His appearance is just a distraction - a greatsword materializes overhead, and gravity takes hold! \[\d+\]$" 
+    name="triggerSKTauntTarget" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="seaking_target">
+  </trigger>
+  <trigger 
+    match="^Suddenly, the Sea King is before you. A greatsword materializes in his hand and comes crashing down on your head! \[\d+\]$" 
+    name="triggerSKTauntReEngage" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="seaking_target">
+  </trigger>
+
+  <!-- Rewards -->
+  <trigger 
+    match="^Spectre of the Deep says, &quot;A parting gift - at least until the brat gets up again\.&quot;$"
+    name="activateRewards" enabled="y" group="SKDRewards" omit_from_output="n" regexp="y" sequence="99" script="activateRewards">
+  </trigger>
+  <trigger 
+    match="^Spectre of the Deep says, &quot;Farewell\.&quot;$" 
+    name="reportRewards" enabled="n" group="SKDRewards" omit_from_output="n" regexp="y" sequence="99" script="reportRewards">
+  </trigger>
+  <trigger 
+    match="^You are awarded (?<trains>\d+|\d{1,3}(,\d{3})*)(\.\d+)? trains and (?<gold>\d+|\d{1,3}(,\d{3})*)(\.\d+)? gold\.$" 
+    name="rewardedGoldTrains" enabled="n" group="SKDRewards" omit_from_output="n" regexp="y" sequence="99" script="processRewards">
+  </trigger>
+  <trigger 
+    match="^You receive (?<qp>\d+|\d{1,3}(,\d{3})*)(\.\d+)? quest points\.$" 
+    name="rewardedQP" enabled="n" group="SKDRewards" omit_from_output="n" regexp="y" sequence="99" script="processRewards">
+  </trigger>
+  <trigger 
+    match="^You receive (?<item>.*) from Spectre of the Deep\.$" 
+    name="rewardedItem" enabled="n" group="SKDRewards" omit_from_output="n" regexp="y" sequence="99" script="processRewards">
+  </trigger>
+  
+</triggers>
+
+
+<!--  Get our standard constants -->
+
+<include name="constants.lua"/>
+
+<!--  Script  -->
+<script>
+<![CDATA[
+dofile(GetInfo(60) .. "aardwolf_colors.lua") -- Used to support Aard Colors for the cnote() function
+require "tprint"
+require "gmcphelper"
+require "serialize"
+local prevZone, currentZone = "123prev_zone", "123current_zone"
+local to_bool = {["0"] = false, ["1"] = true}
+-- Basic print function that supports aard, xterm, and ANSI color codes [idea from Durel's Inventory script]
+
+function cnote(string)
+  AnsiNote(stylesToANSI(ColoursToStyles(string)))
+end 
+
+--[[ SKD ]]--
+-- Variables for use throughout script
+prepend = "@D[@x086S@x044K@x043D@D]:"
+
+--[[ Damage Vulnerabilities for Pylons
+    Cerulean = Bash, Earth, Energy, Fire, Light
+    Lilac = Acid, Air, Electric, Holy, Negative, Slash, Sonic
+    Seafoam = Cold, Magic, Mental, Pierce, Shadow, Water
+
+]]
+
+-- Do not set these, they're set by internal functions or with aliases
+_cmdAttack = ""
+_cmdWeapon = ""
+_canRoom = ""
+_shouldSwapWeapon = false
+_skdAim = "ceiling"
+configs = {
+  skdQuiet = true
+}
+-- Prettified room direction callouts
+_prettifiedRoomNames = {
+  {
+    room = "28379",
+    name = "N alc"
+  },
+  {
+    room = "28380",
+    name = "N"
+  },
+  {
+    room = "28381",
+    name = "NW"
+  },
+  {
+    room = "28383",
+    name = "W"
+  },
+  {
+    room = "28384",
+    name = "W alc"
+  },
+  {
+    room = "28387",
+    name = "SW"
+  },
+
+  {
+    room = "28389",
+    name = "S"
+  },
+
+  {
+    room = "28390",
+    name = "S alc"
+  },
+
+  {
+    room = "28388",
+    name = "SE"
+  },
+
+  {
+    room = "28385",
+    name = "E"
+  },
+
+  {
+    room = "28386",
+    name = "E alc"
+  },
+  {
+    room = "28382",
+    name = "NE"
+  }
+}
+
+-- Store the textcolour values for each pylon color
+_slashColor=ColoursToStyles("@x147")[1].textcolour
+_lightColor=ColoursToStyles("@x075")[1].textcolour
+_mentalColor=ColoursToStyles("@x159")[1].textcolour
+_yellowColor=ColoursToStyles("@Y")[1].textcolour
+_cyanColor=ColoursToStyles("@C")[1].textcolour
+_redColor=ColoursToStyles("@R")[1].textcolour
+_x039Color=ColoursToStyles("@x039")[1].textcolour
+_x075Color=ColoursToStyles("@x075")[1].textcolour
+_x024Color=ColoursToStyles("@x024")[1].textcolour
+
+function init_skd_data()
+  skd_data = { 
+    healcheck = 0,
+    hc_time = 0,
+    starttime = 0,
+    endtime = 0,
+    pylons_or_heal = '',
+    moon_rooms = {}
+  }
+end
+
+init_skd_data()
+
+function skd_epic_start(name,line,wildcards,styles)
+  Execute("sendgmcp config autoassist off")
+  Send("fol self")
+end
+function skd_heal_check(name,line,wildcards,styles)
+  if styles[1].textcolour == _redColor then
+    skd_data.healcheck = skd_data.healcheck + 1
+    if skd_data.healcheck > 1 then
+      diff = os.clock() - skd_data.hc_time
+    else
+	  diff = 0
+	end
+	skd_data.hc_time = os.clock()
+    cnote(("%s @RHeal Check[@W%d@w/@G6@R]@w @D(timer: %d)@w"):format(prepend,skd_data.healcheck,diff))
+  end
+end
+function skd_pylon_colors(name, line, args, styles)
+    if pylonFight[args.color] then
+        skd_pylon_update(args.color)
+     else
+        ColourNote("yellow",""," >> ", "red","","SKD plugin does not recognize this pylon color.")
+    end
+end
+function skd_pylon_colorstoo(name, line, args, styles)
+    local txtColour = "unknown"
+    local pylonColour = "unknown"
+    for k,v in ipairs(styles) do
+      if (string.lower(v.text) == "a crystal pylon") then
+        txtColour = v.textcolour
+        break
+      end
+    end
+    if (txtColour == _slashColor) then
+        pylonColour = "lilac"
+    elseif txtColour == _lightColor then
+        pylonColour = "cerulean"
+    elseif (txtColour == _mentalColor) then
+        pylonColour = "seafoam"
+    end
+    if pylonFight[pylonColour] then
+        skd_pylon_update(pylonColour)
+     else
+        ColourNote("yellow",""," >> ", "red","","SKD plugin does not recognize this pylon color.")
+    end
+end
+function skd_pylon_update(colour)
+    if (_cmdWeapon ~= pylonFight[colour]["weapon"]) then
+        _shouldSwapWeapon = true
+    end
+    _cmdWeapon = pylonFight[colour]["weapon"]
+    _cmdAttack = pylonFight[colour]["cmdAttack"]
+    --Note("weapon now " .. tostring(_cmdWeapon))
+    --Note("attack now " .. tostring(_cmdAttack))
+end
+function seaking_taunt_hit(name, line, wildcards, styles)
+  if styles[1].textcolour == _yellowColor then
+    Send( ("gt %s @YTaunt@W hit!!@w"):format(prepend) )
+  end
+end
+function seaking_movement(name, line, wildcards, styles)
+--  if styles[1].textcolour == _cyanColor then
+    if name == "triggerSKLeap" then
+      Send( ("gt %s @WSea King has leaped! @RPylons @Wor @RHeal Check @WPhase."):format(prepend) )
+      skd_data.pylons_or_heal = '' -- reset pylon vs heal phase
+      DoAfterSpecial(3, 'report_pylon_events()', 12) -- in 3 seconds, check if pylon phase and start report timers
+      _canRoom = "" -- reset cannon room
+      EnableTrigger('triggerSKDEpicCannonFound', true) -- enable cannon found trigger
+    elseif name == "triggerSKLand" then
+      Send( ("gt %s @WSea King is grounded! @RTaunt @Wor @RKill @WPhase."):format(prepend) )
+      skd_data.moon_rooms = {}
+    elseif name == "triggerSKHealCheck" then
+      skd_data.healcheck = 0
+      skd_data.pylons_or_heal = 'heal'
+      Send( ("gt %s @RHeal Check @Wphase confirmed! @R[@W%d@w/@G6@R]@w"):format(prepend,skd_data.healcheck) )
+    end
+--  end
+end
+
+function seaking_target(name, line, wildcards, styles)
+  local room = gmcp("room.info.num")
+  local kingHP = gmcp("char.status.enemypct")
+  local text = ""
+
+  for k, v in ipairs(_prettifiedRoomNames) do
+    if v["room"] == room 
+        then 
+          text = v["name"]
+          break
+    end
+  end
+
+  if styles[1].textcolour == _x039Color then
+    Send( ("gt %s @RSea King@x208(" .. kingHP .. "%%)@W is targetting me!@w - @R" .. text .. "@w"  ):format(prepend) )
+  end
+end
+
+function skd_epic_reset( name, line, wildcards, styles )
+  if styles[1].textcolour == _x024Color then
+    Send( ("gt %s @x038Epic reset!!@w"):format(prepend) )
+  end
+end
+--[[ SQLite Database Functions ]]--
+function init_db()
+    local db_path = ("%sdata\\skd_epic_runs.db"):format(GetInfo(64))
+    local db, err = sqlite3.open(db_path)
+    if err ~= nil then
+        print("Error opening database: " .. err)
+        return nil
+    end
+    -- Create the table if it doesn't exist
+    local create_table_sql = [[
+        CREATE TABLE IF NOT EXISTS skd_epic_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            trains INTEGER,
+            qp INTEGER,
+            gold INTEGER
+        );
+    ]]
+    local res, err = db:exec(create_table_sql)
+    if err ~= nil then
+        print("Error creating table: " .. err)
+        db:close()
+        return nil
+    end
+    db:close()
+    return db_path
+end
+function insert_run(connection_string, trains, qp, gold)
+    local db, err = sqlite3.open(connection_string)
+    if err ~= nil then
+        print("Error opening database: " .. err)
+        return false
+    end
+    local date = os.date("%Y-%m-%d")
+    local insert_sql = string.format([[
+        INSERT INTO skd_epic_runs (date, trains, qp, gold)
+        VALUES ('%s', %d, %d, %d);
+    ]], date, trains, qp, gold)
+    local res, err = db:exec(insert_sql)
+    if err ~= nil then
+        print("Error inserting record: " .. err)
+        db:close()
+        return false
+    end
+    db:close()
+    return true
+end
+function get_todays_stats(connection_string)
+  local db, err = sqlite3.open(connection_string)
+  if err ~= nil then
+    print("Error opening database: " .. err)
+    return nil
+  end
+  local query = string.format( [[
+    SELECT 
+      COUNT(*) as runs
+      ,COALESCE(SUM(trains),0) as total_trains
+      ,COALESCE(SUM(qp),0) as total_qp
+      ,COALESCE(SUM(gold),0) as total_gold
+      ,COALESCE(ROUND(CAST(AVG(trains) as INTEGER)),0) as avg_trains
+      ,COALESCE(ROUND(CAST(AVG(qp) as INTEGER)),0) as avg_qp
+      ,COALESCE(ROUND(CAST(AVG(gold) as INTEGER)),0) as avg_gold
+    FROM skd_epic_runs
+    WHERE date = strftime('%%Y-%%m-%%d', 'now', 'localtime')
+  ]], date)
+    local stats = {}
+    for row in db:nrows(query) do
+        stats.runs = tonumber(row.runs)
+        stats.total_trains = tonumber(row.total_trains)
+        stats.total_qp = tonumber(row.total_qp)
+        stats.total_gold = tonumber(row.total_gold)
+        stats.avg_trains = tonumber(row.avg_trains)
+        stats.avg_qp = tonumber(row.avg_qp)
+        stats.avg_gold = tonumber(row.avg_gold)
+    end
+    db:close()
+    return stats
+end
+function get_thisweek_stats(connection_string)
+  local db, err = sqlite3.open(connection_string)
+  if err ~= nil then
+    print("Error opening database: " .. err)
+    return nil
+  end
+  local query = [[
+    SELECT 
+      COUNT(*) as runs
+      ,COALESCE(SUM(trains),0) as total_trains
+      ,COALESCE(SUM(qp),0) as total_qp
+      ,COALESCE(SUM(gold),0) as total_gold
+      ,COALESCE(ROUND(CAST(AVG(trains) as INTEGER)),0) as avg_trains
+      ,COALESCE(ROUND(CAST(AVG(qp) as INTEGER)),0) as avg_qp
+      ,COALESCE(ROUND(CAST(AVG(gold) as INTEGER)),0) as avg_gold
+    FROM skd_epic_runs
+    WHERE 
+      strftime('%Y-%W', date) = strftime('%Y-%W', 'now')
+  ]]
+    local stats = {}
+    for row in db:nrows(query) do
+        stats.runs = tonumber(row.runs)
+        stats.total_trains = tonumber(row.total_trains)
+        stats.total_qp = tonumber(row.total_qp)
+        stats.total_gold = tonumber(row.total_gold)
+        stats.avg_trains = tonumber(row.avg_trains)
+        stats.avg_qp = tonumber(row.avg_qp)
+        stats.avg_gold = tonumber(row.avg_gold)
+    end
+    db:close()
+    return stats
+end
+function get_lifetime_stats(connection_string)
+  local db, err = sqlite3.open(connection_string)
+  if err ~= nil then
+    print("Error opening database: " .. err)
+    return nil
+  end
+  local query = string.format( [[
+    SELECT 
+      COUNT(*) as runs
+      ,COALESCE(SUM(trains),0) as total_trains
+      ,COALESCE(SUM(qp),0) as total_qp
+      ,COALESCE(SUM(gold),0) as total_gold
+      ,COALESCE(ROUND(CAST(AVG(trains) as INTEGER)),0) as avg_trains
+      ,COALESCE(ROUND(CAST(AVG(qp) as INTEGER)),0) as avg_qp
+      ,COALESCE(ROUND(CAST(AVG(gold) as INTEGER)),0) as avg_gold
+    FROM skd_epic_runs
+  ]], date)
+    local stats = {}
+    for row in db:nrows(query) do
+        stats.runs = tonumber(row.runs)
+        stats.total_trains = tonumber(row.total_trains)
+        stats.total_qp = tonumber(row.total_qp)
+        stats.total_gold = tonumber(row.total_gold)
+        stats.avg_trains = tonumber(row.avg_trains)
+        stats.avg_qp = tonumber(row.avg_qp)
+        stats.avg_gold = tonumber(row.avg_gold)
+    end
+    db:close()
+    return stats
+end
+--[[ Formatting functions ]]--
+function comma_value(amount)
+  local formatted = amount
+  while true do  
+    formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
+    if (k==0) then
+      break
+    end
+  end
+  return formatted
+end
+--[[ Rewards Tracking Functions ]]--
+function init_rewards()
+  reward = { 
+    qp=0,
+    gold=0,
+    trains=0,
+    items = { }	
+  }
+end
+function activateRewards( name, line, wildcards, styles )
+  init_rewards()
+  EnableTrigger("rewardedGoldTrains", true )
+  EnableTrigger("rewardedQP", true )
+  EnableTrigger("rewardedItem", true )
+  EnableTrigger("reportRewards", true )
+  EnableTrigger("activateRewards", false )
+end
+function reportRewards( name, line, wildcards, styles )
+  EnableTrigger("rewardedGoldTrains", false )
+  EnableTrigger("rewardedQP", false )
+  EnableTrigger("rewardedItem", false )
+  EnableTrigger("reportRewards", false )
+  EnableTrigger("activateRewards", true )
+
+  EnableTrigger('triggerSKDEpicCannonFound', false) -- disable cannon found trigger
+  
+  Execute("sendgmcp config autoassist on")
+
+  -- Reset values as fallback
+  _cmdWeapon = ""
+  _cmdAttack = ""
+  _canRoom = ""
+
+  rewards = print_rewards(reward)
+  Send(("%s %s"):format("gt", rewards))
+  local total_time = os.time() - skd_data.starttime
+  Execute("gt " .. disp_time(total_time) .. "$C" .. print_pups(reward,total_time) .. "$C" ) -- Report epic run time
+end
+function processRewards( name, line, wildcards, styles )
+  if name=="rewardedGoldTrains" then
+    rgold = string.gsub(wildcards.gold, ",", "")
+	rtrain = string.gsub(wildcards.trains, ",", "")
+    reward.gold = tonumber(reward.gold) + tonumber(rgold)
+	reward.trains = tonumber(reward.trains) + tonumber(rtrain)
+  elseif name=="rewardedQP" then
+    reward.qp = tonumber(reward.qp) + tonumber(wildcards.qp)
+  elseif name=="rewardedItem" then
+    table.insert(reward.items, wildcards.item)
+  end
+end
+function print_pups(reward_table, total_time)
+  local trains_pup = 5.2 -- how many trains per pup
+  local pups = ""
+
+  for key, value in pairs(reward_table) do
+    if type(value) ~= "table" then
+      if (key == "trains" and value > 0) then 
+        pups = string.format("%.2f", value / trains_pup)
+      end
+    end
+  end
+  if (pups ~= "") then
+    local times_pup = "unknown"
+    if (total_time ~= nil) then 
+      times_pup = string.format("%.2f",tonumber(total_time) / tonumber(pups))
+    end 
+    --local message = "@Y >> @w Pup equivalent: @W " .. pups .. " @Y pups at @W " .. tostring(times_pup) .. "@ws"
+    --CallPlugin("b555825a4a5700c35fa80780","storeFromOutside", message)
+    --Send("echo " .. message)
+    message = "@w, Pup equivalent:@W " .. pups .. "@G pups at @W" .. tostring(times_pup) .. "@ws"
+    return message
+  else Note("SKD issue: did not see pups in rewards table")
+  end
+
+end
+function print_rewards(reward_table)
+  items = ""
+  gold_reward = ""
+  trains_reward = ""
+  qp_reward = ""
+  message = ""
+  pups = ""
+  for key, value in pairs(reward_table) do
+    if type(value) == "table" then
+      if #value > 0 then
+        for i = 1, #value do
+          if #items == 0 then
+            items = ("@WItems: @D[@G%s@D]@w"):format(value[i])
+          else
+            items = ("%s@D, [@G%s@D]@w"):format(items,value[i])
+          end
+        end
+      end
+    else
+      if key == "gold" and value > 0 then 
+        gold_reward = (("%s@wGold[@Y%s@w]@w "):format(gold_reward,comma_value(value)))
+      elseif key == "trains" and value > 0 then 
+        trains_reward = (("%s@wTrains[@C%s@w]@w "):format(trains_reward,comma_value(value)))
+      elseif key == "qp" and value > 0 then
+        qp_reward = (("%s@wQP[@M%s@w]@w "):format(qp_reward,comma_value(value)))
+      end
+    end
+  end
+  message = trains_reward .. gold_reward .. qp_reward .. items 
+  -- process database entry
+  -- local db = init_db()
+  -- if db ~= nil then 
+  --   local success = insert_run(db, reward_table.trains, reward_table.qp, reward_table.gold)
+  --   if success then
+  --     cnote( ("%s insert_run() success!"):format(prepend) )
+	-- end
+  -- else
+  --   cnote( ("%s insert_run() failed to initialize database!"):format(prepend) )
+  -- end
+
+  return message
+end
+function ALIAS_report(name,line,args)
+  local db = init_db()
+  if ((args.type:lower() ~= 'daily') and (args.type:lower() ~= 'life') and (args.type:lower() ~= 'weekly')) then
+    cnote( ("%s@W You need to provide either @Ydaily@W, @Yweekly@W, or @Ylife@W as the argument.@w"):format(prepend) )
+	return
+  end
+  if db ~= nil then 
+	if args.type == 'daily' then
+      ts = get_todays_stats(db)
+	  ttype = "Daily"
+	elseif args.type == 'life' then
+	  ts = get_lifetime_stats(db)
+	  ttype = "Lifetime"
+	elseif args.type == 'weekly' then
+	  ts = get_thisweek_stats(db)
+	  ttype = "Weekly"
+    end
+    if ts ~= nil then
+      msg = ("%s @D%s Totals[@wCount(@R%s@w) @wTrains(@C%s@w) Gold(@Y%s@w) QP(@M%d@w)@D] Averages[@wTrains(@C%s@w) Gold(@Y%s@w) QP(@M%s@w)@D]@w"):format(prepend, ttype,comma_value(ts.runs), comma_value(ts.total_trains), comma_value(ts.total_gold), comma_value(ts.total_qp), comma_value(ts.avg_trains), comma_value(ts.avg_gold), comma_value(ts.avg_qp))
+	  Send( ("%s %s"):format("gt", msg) )
+	end
+  else
+    cnote( ("%s insert_run() failed to initialize database!"):format(prepend) )
+  end
+end
+
+function attack()
+    if (_cmdWeapon ~= "" and _cmdAttack ~= "") then
+        if (_shouldSwapWeapon) then
+            Execute(_cmdWeapon)
+            _shouldSwapWeapon = false
+        end
+        if (gmcp("char.status.pos") == "Fighting") then        
+            Execute(_cmdAttack .. " pylon")
+        elseif pylonFight["options"]["preferBackstab"] then
+            Send("backstab pylon")
+            Send("kill pylon")
+        else
+            Execute(_cmdAttack .. " pylon")
+        end
+    else
+      cnote( "@RFind a pylon first!@w" )
+    end
+end
+
+function cmdReportCannon()
+  local room = gmcp("room.info.num")
+  local text = ""
+
+  for k, v in ipairs(_prettifiedRoomNames) do
+    if v["room"] == room 
+        then 
+          text = v["name"]
+          break
+    end
+  end
+
+  if text ~= "" then
+    Execute( "gt @D[@WSKD@D]:@G Cannon: @W" .. text .. "@w" )
+    _canRoom = room
+    else
+    cnote( "@RNot in SKD area@w" )
+  end
+end
+
+function skd_epic_cannon_found()
+  cmdReportCannon()
+  EnableTrigger('triggerSKDEpicCannonFound', false) -- disable cannon found trigger
+end
+
+function cmdLoadCannon()
+  -- on_getting_pylon_dust() -- this reports getting dust to GT
+  if _canRoom ~= "" then
+    Execute("mapper walkto " .. _canRoom)
+    Execute("load cannon")
+    if _skdAim == 'floor' then
+      Execute("aim floor")
+    else
+      Execute("aim ceiling")
+    end
+    Execute("fire cannon")
+    else
+    cnote( "@RCannon room not set@w" )
+  end
+end
+
+function cmdReportMoon()
+  local room = gmcp("room.info.num")
+  local text = ""
+
+  for k, v in ipairs(_prettifiedRoomNames) do
+    if v["room"] == room 
+        then 
+          text = v["name"]
+          break
+    end
+  end
+
+  if text ~= "" then
+    Execute( "gt @D[@WSKD@D]:@G Moon: @W" .. text .. "@w" )
+    skd_data.moon_rooms = {}
+  else
+    cnote( "@RNot in SKD area@w" )
+  end
+end
+
+function skd_epic_start_specter()
+  skd_data.starttime = os.time()
+  _cmdWeapon = ""
+  _cmdAttack = ""
+  _canRoom = ""
+  _shouldSwapWeapon = false
+end
+
+function report_lizaard_times()
+  if configs.skdQuiet == false then 
+    Execute("gt @D[@WSKD@D]:@G Lizaard @Wexploding in @G90@W seconds. Next warning in @G60@W seconds.@w")
+    DoAfterSpecial(60, 'Execute("gt @D[@WSKD@D]:@G Lizaard @Wexploding in @G30@W seconds.@w")', 12)
+    DoAfterSpecial(78, 'Execute("gt @D[@WSKD@D]:@G Lizaard @Wexploding in @G12@W seconds.@w")', 12)
+  end
+end
+
+function report_pylon_events()
+  if configs.skdQuiet == false then
+    if skd_data.pylons_or_heal ~= 'heal' then
+      Execute("gt @D[@WSKD@D]:@GPylons @Wphase started!@w")
+      DoAfterSpecial(22, 'Execute("gt @D[@WSKD@D]: @GPylons @Wexploding in @G10 @Wseconds@w")', 12)
+      DoAfterSpecial(36, 'Execute("gt @D[@WSKD@D]: @GPylons @Wphase @G2/3@w")', 12)
+      DoAfterSpecial(62, 'Execute("gt @D[@WSKD@D]: @GPylons @Wexploding in @G10 @Wseconds@w")', 12)
+      DoAfterSpecial(72, 'Execute("gt @D[@WSKD@D]: @GPylons @Wphase @G3/3@w")', 12)
+    end
+  end
+end
+
+function mark_moon(name,line,wildcards,styles)
+  local roomNumber = gmcp("room.info.num")
+  if name == 'skd_moon_description' then
+    local found = false
+    for i, room in ipairs(skd_data.moon_rooms) do
+        if room.room == roomNumber then
+            found = true
+            if room.count > 5 then
+              cmdReportMoon()
+            else
+              room.count = room.count + 1
+            end
+            break
+        end
+    end
+    if not found then
+        -- If roomNumber was not found, insert a new entry with count 1
+        table.insert(skd_data.moon_rooms, { room = roomNumber, count = 1 })
+    end
+  end
+
+  if name == 'skd_moon_bad' then
+    for i, room in ipairs(skd_data.moon_rooms) do
+        if room.room == roomNumber then
+            room.count = 1
+            break
+        end
+    end
+  end
+end
+
+function on_cannon_fire_self()
+  if configs.skdQuiet == false then
+    local charName = gmcp("char.base.name")
+    Execute(string.format("gt @D[@WSKD@D]: @G%s @Wfired cannon!@w", charName))
+  end
+end
+
+function on_getting_pylon_dust()
+  if configs.skdQuiet == false then
+    Execute("gt @D[@WSKD@D]: @WGot pylon dust!@w")
+  end
+end
+
+function toggleCannonAim()
+  if _skdAim == 'ceiling'
+    then
+    _skdAim = 'floor'
+    print("Aiming floor")
+    else
+    _skdAim = 'ceiling'
+    print("Aiming ceiling")
+  end
+end
+
+function toggleReporting()
+  if configs.skdQuiet == true 
+    then 
+      configs.skdQuiet = false
+      print("SKD reporting set to loud")
+    else 
+      configs.skdQuiet = true
+      print("SKD reporting set to quiet")
+  end
+end
+
+function disp_time(time)
+  local days = math.floor(time/86400)
+  local remaining = time % 86400
+  local hours = math.floor(remaining/3600)
+  remaining = remaining % 3600
+  local minutes = math.floor(remaining/60)
+  remaining = remaining % 60
+  local seconds = remaining
+  if (hours < 10) then
+    hours = "0" .. tostring(hours)
+  end
+  if (minutes < 10) then
+    minutes = "0" .. tostring(minutes)
+  end
+  if (seconds < 10) then
+    seconds = "0" .. tostring(seconds)
+  end
+
+  if hours == "00" and days == 0 then
+    return "@D[@WSKD@D]:@G " .. "Finished in:@Y " .. minutes..':'..seconds
+  else
+    return "@RTime too long, assuming error"
+  end
+end
+function send_dots(dots)
+     for i = 1, dots do
+          ColourTell("cyan", "", "-", "cyan", "", "-")
+     end
+     Tell("\n")
+end
+function padRight(text, length, padChar)
+     local this_text = tostring(text)
+     local padding = length - string.len(this_text)
+     for i = 1, padding do
+          this_text = this_text .. padChar
+     end
+     return this_text
+end
+function OnPluginInstall ()
+	assert (loadstring (GetVariable ("configs") or "")) ()
+end -- function OnPluginInstall
+
+function OnPluginSaveState ()
+	SetVariable ("configs", "configs = " .. serialize.save_simple (configs))
+end -- function OnPluginSaveState
+
+function toggleBackstab()
+    pylonFight["options"]["preferBackstab"] = not pylonFight["options"]["preferBackstab"]
+    SetVariable("pylonFight",serialize.save_simple(pylonFight))
+    SaveState()
+    ColourNote("cornflowerblue","", " >> Seaking will start the pylon fight with a backstab: ", "cyan","", tostring(pylonFight["options"]["preferBackstab"]))
+end
+function set_weapon(name, line, wildcards)
+    local fnd = false
+    for i, v in pairs (pylonFight) do
+        if (v.alias == wildcards[1]) then
+            v.weapon = wildcards.command
+            ColourNote("cornflowerblue","", " >> Equip command for ", "cyan", "", tostring(v.alias), "white","",
+                " [" .. tostring(i) .. "]", "cornflowerblue","", " set to ", "cyan", "", tostring(v.weapon))
+            --ColourNote("cornflowerblue","", " >> ","cyan","","The " .. tostring(i), "cyan", "", " pylon is vulnerable to: ", "white","",tostring(v.vulnerable))
+            fnd = true
+            break
+        end
+    end
+    if fnd then
+        SetVariable("pylonFight",serialize.save_simple(pylonFight))
+        SaveState()
+    else
+        ColourNote("yellow",""," >> ", "red","","SKD does not recognize this weapon alias.")
+    end
+end
+function set_attack(name, line, wildcards)
+    local fnd = false
+    for i, v in pairs (pylonFight) do
+        if (v.alias == wildcards[1]) then
+            v.cmdAttack = wildcards.command
+            ColourNote("cornflowerblue","", " >> Attack command for ", "cyan", "", tostring(v.alias), "white","",
+                " [" .. tostring(i) .. "]", "cornflowerblue","", " set to ", "cyan", "", tostring(v.cmdAttack))
+            --ColourNote("cornflowerblue","", " >> ","cyan","","The " .. tostring(i), "cyan", "", " pylon is vulnerable to: ", "white","",tostring(v.vulnerable))
+            fnd = true
+            break
+        end
+    end
+    if fnd then
+        SetVariable("pylonFight",serialize.save_simple(pylonFight))
+        SaveState()
+    else
+        ColourNote("yellow",""," >> ", "red","","SKD does not recognize this pylon alias.")
+    end
+end
+function equip_weapon(name, line, wildcards)
+    if (wildcards[1] == "w1") then
+        Execute(_cmdCeruleanWeapon)
+    elseif (wildcards[1] == "w2") then
+        Execute(_cmdLilacWeapon)
+    elseif (wildcards[1] == "w3") then
+        Execute(_cmdSeafoamWeapon)
+    end
+end
+function show_pylon_attacks()
+    Note("")
+    local pad_length = 24
+    local pylonList = {[1] = "cerulean",[2] = "lilac", [3] = "seafoam"}
+    send_dots(55)
+    ColourNote("white","", " List of pylons, vulnerabilities, aliases, and expected behavior of aliases for the Seaking mini-epic script")
+    ColourNote("dodgerblue","",padRight("",15,"-") .. padRight("   ",95,"-"))
+    for k,v in ipairs (pylonList) do   
+        ColourNote("lightsteelblue","", padRight("[" .. tostring(pylonFight[v]["alias"]) ..
+            " (" .. v .. "):",19," ") .. pylonFight[v]["vulnerable"])
+        ColourNote("cyan","", padRight(" " .. tostring(pylonFight[v]["alias"]) ,19," "), "white","",padRight(pylonFight[v]["weapon"],10," "))
+        ColourNote("cyan","", padRight(" cc" ,19," "), "white","",padRight(pylonFight[v]["cmdAttack"],10," "))
+    end
+  
+    Note("")
+    Note("")
+
+    ColourNote("dodgerblue","", " Set Equip Command               : ","cyan", "", ";w[1-3] weapon","white",""," command")
+    ColourNote("dodgerblue","", " Example:")
+    --ColourNote("dodgerblue","", " For example                     : ","cyan", "", ";w1 weapon","white",""," remove wielded;remove second;dual 302114;wield 631177")
+    Note("")
+    ColourNote("dodgerblue","", " Set Attack Command              : ","cyan", "", ";w[1-3] attack","white",""," command")
+    ColourNote("dodgerblue","", " For example                     : ","cyan", "", ";w2 attack","white",""," c 626")
+    Note("")
+    ColourNote("dodgerblue","", " Type ", "cyan", "", "SKD Help","dodgerblue",""," for details")
+    send_dots(55)
+    Note("")
+end
+function plugin_reload()
+     local scriptPrefix = GetAlphaOption("script_prefix")
+     local retval
+
+  -- If the user has not already specified the script prefix for this version of mush, pick a
+  -- reasonable default value
+  if (scriptPrefix == "") then
+     scriptPrefix = "\\\\\\"
+     SetAlphaOption("script_prefix", scriptPrefix)
+  end
+
+  Note("Reloading SKD Helper plugin")
+
+  --reset_globals()
+
+  retval = Execute(scriptPrefix.."DoAfterSpecial(0.1, \"ReloadPlugin('"..GetPluginID().."')\", sendto.script)")
+  if (retval ~= 0) then
+     Note("SKD Helper failed to reload. Reload manually, the old-fashioned way " .. retval)
+     retval = DRL_RET_INTERNAL_ERROR
+  end -- if
+
+  return retval
+end
+function show_vars()
+    local padLength = 45
+    local plugin_version = tostring(GetPluginInfo(GetPluginID(), 19))
+    Note("")
+    ColourNote("lime","", padRight("Name",21," ") .. ": SKD Helper v" .. plugin_version)
+    ColourNote("lime","", padRight("Purpose",21," ") .. ": List of variables in the script")
+
+    ColourNote("lime","", "------- toggles -------")
+    ColourNote("white","",padRight("skdquiet mode      ",padLength," "),"white","",":","lime",""," " .. tostring(configs.skdQuiet))
+    ColourNote("white","",padRight("skdaim             ",padLength," "),"white","",":","lime",""," " .. tostring(_skdAim))
+    ColourNote("white","",padRight("skdbs              ",padLength," "),"white","",":","lime",""," " .. tostring(pylonFight["options"]["preferBackstab"]))
+
+    Note()
+    show_pylon_attacks()
+    Note()
+end
+function show_table()
+    Note()
+    tprint(pylonFight)
+    Note()
+end
+
+
+function OnPluginBroadcast (msg, id, name, text)
+    if id == "3e7dedbe37e44942dd46d264" then        
+        if (text == "room.info") then
+            currentZone = gmcp("room.info.zone")
+            if (prevZone == "seaking" and currentZone ~= "seaking") then
+                EnableTriggerGroup("triggerSKDSKGroup", false)
+            elseif (currentZone == "seaking" and prevZone ~= "seaking") then
+                EnableTriggerGroup("triggerSKDSKGroup", true)
+            end
+        end
+        prevZone = currentZone
+    end
+
+end
+function OnPluginInstall()
+    pvar = GetVariable("pylonFight") or serialize.save_simple(getDefault())
+    if pvar ~= "" then
+        pylonFight = loadstring("return "..pvar)()
+    end
+end
+
+--[[ Damage Vulnerabilities for Pylons
+    Cerulean = Bash, Earth, Energy, Fire, Light
+    Lilac = Acid, Air, Electric, Holy, Negative, Slash, Sonic
+    Seafoam = Cold, Magic, Mental, Pierce, Shadow, Water
+
+]]
+function getDefault()
+    -- weapon = "echo @Y >> SKD @Cuse command @Wskdkeys @Cto learn how to set up weapons.",
+    -- cmdAttack = "echo @Y >> SKD @Cuse @Ww[1-3] attack <command>@Cto learn how to set up attack command."
+    return {
+        cerulean = {
+            weapon = "echo >> SKD use command 'skdkeys' to learn how to set up weapons.",
+            cmdAttack = "echo >> SKD use command 'w[1-3] attack <command>' to learn how to set up attack command.",
+            alias = "w1",
+            vulnerable = "Bash, Earth, Energy, Fire, Light"
+        },
+        lilac = {
+            weapon = "echo >> SKD use command 'skdkeys' to learn how to set up weapons.",
+            cmdAttack = "echo >> SKD use command 'w[1-3] attack <command>' to learn how to set up attack command.",
+            alias = "w2",
+            vulnerable = "Acid, Air, Electric, Holy, Negative, Slash, Sonic"
+        },
+        seafoam = {
+            weapon = "echo >> SKD use command 'skdkeys' to learn how to set up weapons.",
+            cmdAttack = "echo >> SKD use command 'w[1-3] attack <command>' to learn how to set up attack command.",
+            alias = "w3",
+            vulnerable = "Cold, Magic, Mental, Pierce, Shadow, Water"
+        },
+        options = {
+            preferBackstab = false
+        }
+    }
+end
+function plugin_reset()
+    SetVariable("pylonFight",serialize.save_simple(getDefault()))
+    SaveState()
+    ColourNote("yellow",""," >> ", "red","","SKD plugin table hase been reset. Now reloading plugin...")
+    plugin_reload()
+end
+
+function show_help()
+
+    local padLength = 45
+    local plugin_version = tostring(GetPluginInfo(GetPluginID(), 19))
+
+    Note("")
+    ColourNote("lime","", padRight("Name",21," ") .. ": SKD Helper v" .. plugin_version)
+    ColourNote("lime","", padRight("Purpose",21," ") .. ": Alerts and Commands for Seaking Epic")
+    Note("")
+    ColourNote("lime","", "------- moon/taunt phase -------")
+    ColourNote("white","",padRight("skdmoon            ",padLength," "),"white","",":","lime",""," Report current room as location of safe moon.")
+
+    Note("")
+    ColourNote("lime","", "------- pylon specific -------")
+    ColourNote("white","",padRight("cc                 ",padLength," "),"white","",":","lime",""," Attack pylon.")
+    ColourNote("white","",padRight("skdbs              ",padLength," "),"white","",":","lime",""," Toggle starting pylon fight with a backstab.")
+    ColourNote("white","",padRight("skdaim             ",padLength," "),"white","",":","lime",""," Toggle aiming floor/cycling.")
+    ColourNote("white","",padRight("skdcan             ",padLength," "),"white","",":","lime",""," gtell current room for cannon location.")
+    ColourNote("white","",padRight("can                ",padLength," "),"white","",":","lime",""," Walkto cannon, load, aim, fire.")
+    
+    Note("")
+    ColourNote("lime","", "------- pylon weapons -------")
+    ColourNote("white","",padRight("skdkeys            ",padLength," "),"white","",":","lime",""," For help and info on weapon switching and attack skills.")
+    ColourNote("white","",padRight("w[1-3] weapon <commands>",padLength," "),"white","",":","lime",""," Set weapon commands for each pylon type.")
+    ColourNote("white","",padRight("w[1-3] attack <command>",padLength," "),"white","",":","lime",""," Set the skill/spell command for 'cc'.")
+    ColourNote("white","",padRight("w[1-3]             ",padLength," "),"white","",":","lime",""," Execute command to swap weapons.")
+    ColourNote("white","",padRight("skdskills          ",padLength," "),"white","",":","lime",""," Print table of skills behind the 'cc' pylon attack command.")
+
+    Note("")
+    ColourNote("lime","", "------- script options -------")
+    ColourNote("white","",padRight("skdquiet           ",padLength," "),"white","",":","lime",""," Toggle gtell instructions during epic.")
+    ColourNote("white","",padRight("skdvars            ",padLength," "),"white","",":","lime",""," Display variables and their values.")
+    ColourNote("white","",padRight("skd reload         ",padLength," "),"white","",":","lime",""," Reloads the plugin.")
+    ColourNote("white","",padRight("skd reset plugin   ",padLength," "),"white","",":","lime",""," Resets plugin to default values and reloads plugin.")
+
+    Note("")
+
+end
+
+--[[
+    Changelog
+    v2.03
+        -- added 'skd reload' to the help file
+        -- fixed regex for wounded pylon
+        -- updated skd_pylon_colorstoo to be smarter and consistently find color
+    v2.02
+        -- fixed display variable in function set_weapon
+        -- fixed regex for moons and cannons...
+        -- convrted the pylon weapon/skills variables into a table 'pylonFight'
+        -- added 'wset weapon' and 'wset attack' aliases for the pylon fight
+        -- added 'skd reset plugin' to reset tables to default and reload plugin
+        -- simplified logic in skd_pylon_colors and skd_pylon_colorstoo
+    v2.01
+        -- added toggle to start pylon fight with a backstab
+        -- added feature to reload plugin with 'skd reload'
+        -- changed cmdLoadCannon function from mapper goto, to mapper walkto
+        -- added alias 'skdvars' to display list of varibles
+        -- disabled skdreport alias. someone else can fix the reporting if they want
+    v2.00
+        -- added help file "skd help"
+        -- made aliases for weapons (w1,w2,w3) to be set by user via MUSH (no more editing XML file)
+        -- created a matrix for attack spell/skill by subclass (will require editing XML file)
+        -- revised logic to retrieve attack spell/skill for pylon
+
+]]
+--[[ can be used for testing
+\\\Simulate("A cerulean crystal pylon stands several spans above your head, glowing faintly.\n")
+\\\Simulate("A lilac crystal pylon stands several spans above your head, glowing faintly.\n")
+\\\Simulate("A seafoam crystal pylon stands several spans above your head, glowing faintly.\n")
+
+]]
+
+
+
+]]>
+</script>
+
+</muclient>
