@@ -8,11 +8,11 @@
    author="Zhalut"
    id="2558d613791af67294299cb9"
    language="Lua"
-   purpose="Triggers to gag things"
+   purpose="SKD Epic Helper"
    date_written="2023-03-17 07:00:00"
    save_state="y"
    requires="0.00"
-   version="2.03"
+   version="2.04"
    >
 
 </plugin>
@@ -964,12 +964,16 @@ function set_attack(name, line, wildcards)
     end
 end
 function equip_weapon(name, line, wildcards)
-    if (wildcards[1] == "w1") then
-        Execute(_cmdCeruleanWeapon)
-    elseif (wildcards[1] == "w2") then
-        Execute(_cmdLilacWeapon)
-    elseif (wildcards[1] == "w3") then
-        Execute(_cmdSeafoamWeapon)
+    local fnd = false
+    for i, v in pairs (pylonFight) do
+        if (v.alias == wildcards[1]) then
+            Execute(v.weapon)
+            fnd = true
+            break
+        end
+    end
+    if not fnd then
+        ColourNote("yellow",""," >> ", "red","","SKD does not recognize this alias as a command.")
     end
 end
 function show_pylon_attacks()
@@ -1148,6 +1152,8 @@ end
 
 --[[
     Changelog
+    v2.04
+        -- fixed equip_weapon()
     v2.03
         -- added 'skd reload' to the help file
         -- fixed regex for wounded pylon
