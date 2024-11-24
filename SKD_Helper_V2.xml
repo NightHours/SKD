@@ -1137,7 +1137,7 @@ function show_help()
     ColourNote("white","",padRight("w[1-3] weapon <commands>",padLength," "),"white","",":","lime",""," Set weapon commands for each pylon type.")
     ColourNote("white","",padRight("w[1-3] attack <command>",padLength," "),"white","",":","lime",""," Set the skill/spell command for 'cc'.")
     ColourNote("white","",padRight("w[1-3]             ",padLength," "),"white","",":","lime",""," Execute command to swap weapons.")
-    ColourNote("white","",padRight("skdskills          ",padLength," "),"white","",":","lime",""," Print table of skills behind the 'cc' pylon attack command.")
+    --ColourNote("white","",padRight("skdskills          ",padLength," "),"white","",":","lime",""," Print table of skills behind the 'cc' pylon attack command.")
 
     Note("")
     ColourNote("lime","", "------- script options -------")
