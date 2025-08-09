@@ -12,7 +12,7 @@
    date_written="2023-03-17 07:00:00"
    save_state="y"
    requires="0.00"
-   version="2.05"
+   version="2.04"
    >
 
 </plugin>
@@ -131,21 +131,20 @@
   </trigger>
   
   <!-- Sea King Fight - Pylons -->
+
   <trigger 
-    match="^You hear a low, ominous hum and see (?P<mob>a crystal pylon).*$"
+    match="^You hear a low, ominous hum and see (?P<mob>a crystal pylon) flicker into existance before you.$"
     name="pylon_spawn" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_pylon_colorstoo">
   </trigger>
 
-   <trigger 
+  <trigger 
     match="^(\(Wounded\) |)A (?<color>lilac|seafoam|cerulean) crystal pylon stands several spans above your head, glowing faintly.$" 
     name="pylon" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_pylon_colors">
   </trigger>
-
   <trigger 
-    match="^(?:\([^)]+\)\s*)*(?:\((?P<Wounded>[Ww]ounded)\)\s*)?(?P<mob>A crystal pylon) is fighting \w+\.$" 
+    match="^\(.+\)+ ?(?P<Wounded>\(Wounded|wounded\) )?(?P<mob>A crystal pylon) is fighting \w+\.$" 
     name="pylon_fighting" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_pylon_colorstoo">
   </trigger>
-
   <!-- Sea King Fight - Taunt -->
   <trigger 
     match="^As the Sea King approaches, moonlight grazes his shoulder.$" 
@@ -282,9 +281,9 @@ _prettifiedRoomNames = {
 }
 
 -- Store the textcolour values for each pylon color
-_slashColor=ColoursToStyles("@x147")[1].textcolour -- lilac
-_lightColor=ColoursToStyles("@x075")[1].textcolour -- cerulean
-_mentalColor=ColoursToStyles("@x159")[1].textcolour -- crystal
+_slashColor=ColoursToStyles("@x147")[1].textcolour
+_lightColor=ColoursToStyles("@x075")[1].textcolour
+_mentalColor=ColoursToStyles("@x159")[1].textcolour
 _yellowColor=ColoursToStyles("@Y")[1].textcolour
 _cyanColor=ColoursToStyles("@C")[1].textcolour
 _redColor=ColoursToStyles("@R")[1].textcolour
@@ -344,7 +343,6 @@ function skd_pylon_colorstoo(name, line, args, styles)
     elseif (txtColour == _mentalColor) then
         pylonColour = "seafoam"
     end
-   -- Note("(DEBUG) Plugin detected the spawn of this color pylon: " .. pylonColour)
     if pylonFight[pylonColour] then
         skd_pylon_update(pylonColour)
      else
@@ -355,7 +353,6 @@ function skd_pylon_update(colour)
     if (_cmdWeapon ~= pylonFight[colour]["weapon"]) then
         _shouldSwapWeapon = true
     end
-   -- Note("(DEBUG) _shouldSwapWeapon = " .. tostring(_shouldSwapWeapon))
     _cmdWeapon = pylonFight[colour]["weapon"]
     _cmdAttack = pylonFight[colour]["cmdAttack"]
     --Note("weapon now " .. tostring(_cmdWeapon))
@@ -1065,6 +1062,7 @@ function OnPluginBroadcast (msg, id, name, text)
         end
         prevZone = currentZone
     end
+
 end
 function OnPluginInstall()
     pvar = GetVariable("pylonFight") or serialize.save_simple(getDefault())
@@ -1154,9 +1152,6 @@ end
 
 --[[
     Changelog
-    v2.05
-        -- fixed regex bug for spawning pylon and fighting pylon.
-          -- In English, it now knows the weapons to switch to if the pylon spawn in your room and if your groupie is already fighting it.
     v2.04
         -- fixed equip_weapon()
     v2.03
