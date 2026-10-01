@@ -12,7 +12,7 @@
    date_written="2023-03-17 07:00:00"
    save_state="y"
    requires="0.00"
-   version="2.05"
+   version="2.06"
    >
 
 </plugin>
@@ -63,7 +63,7 @@
   </trigger>
   <!-- On encountering a moon, check if it's the right one -->
   <trigger 
-  match="^\(.+\)+ Shimmering moonlight floats through the cracks in the ceiling to grace the floor\.$" 
+  match="^(?:\([^)]*\)\s*)+ Shimmering moonlight floats through the cracks in the ceiling to grace the floor\.$"
   name="skd_moon_description" enabled="y" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="mark_moon">
   </trigger>
   <!-- Mark moon as bad -->
@@ -84,7 +84,7 @@
   </trigger>
   <!-- On finding cannon, set cannon room and report if no cannon room is set -->
   <trigger 
-    match="^(?:\s+)?\(.+\)+ A reverse spirit discombobulator cannon sort of contraption device is mounted on a rusted tripod.$"
+    match="^(?:\s+)?(?:\([^)]*\)\s*)+ A reverse spirit discombobulator cannon sort of contraption device is mounted on a rusted tripod.$"
     name="triggerSKDEpicCannonFound" enabled="n" group="triggerSKDSKGroup" omit_from_output="n" regexp="y" sequence="99" script="skd_epic_cannon_found">
   </trigger>
   <!-- After you get pylon dust, go to cannon if room is set -->
